@@ -3,7 +3,9 @@ abstract: 'log line filter, like \G of MySQL'
 author:
   - 'Dai Okabayashi <bayashi@cpan.org>'
 build_requires:
+  Exporter: 0
   Test::More: 0.88
+  Test::Warn: 0
 configure_requires:
   Module::Build: 0.36
 generated_by: 'Module::Build version 0.3607'
@@ -15,7 +17,7 @@ name: App-YG
 provides:
   App::YG:
     file: lib/App/YG.pm
-    version: 0.02
+    version: 0.03
   App::YG::Apache::Combined:
     file: lib/App/YG/Apache/Combined.pm
   App::YG::Apache::Common:
@@ -35,4 +37,4 @@ requires:
   perl: v5.8.1
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.02
+version: 0.03
