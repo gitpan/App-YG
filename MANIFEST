@@ -11,6 +11,9 @@ MANIFEST			This list of files
 META.yml
 README.pod
 share/log
+share/ltsv
+share/space
+share/tab
 t/00_compile.t
 t/01_yg_info.t
 t/02_yg_default.t
