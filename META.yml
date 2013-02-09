@@ -18,7 +18,7 @@ name: App-YG
 provides:
   App::YG:
     file: lib/App/YG.pm
-    version: 0.05
+    version: 0.06
   App::YG::Apache::Combined:
     file: lib/App/YG/Apache/Combined.pm
   App::YG::Apache::Common:
@@ -38,4 +38,4 @@ requires:
   perl: v5.8.1
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.05
+version: 0.06

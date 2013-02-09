@@ -7,11 +7,19 @@ use Pod::Usage;
 use IO::Interactive qw/is_interactive/;
 use Term::ANSIColor qw/colored/;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 our $CONFIG_FILE    = '.ygconfig';
 our $DEFAULT_PARSER = 'apache-combined';
 our $DIGEST_LENGTH = 6;
+our $DEFAULT_COLOR = +{
+    label  => 'blue',
+    colon  => 'cyan',
+    value  => 'green',
+    hr     => 'yellow',
+    count  => 'red',
+    digest => 'magenta',
+};
 
 use Class::Accessor::Lite (
     new => 1,
@@ -22,6 +30,7 @@ use Class::Accessor::Lite (
         labels
         label_format
         count
+        hr
     /],
 );
 
@@ -76,12 +85,14 @@ sub __out {
         return;
     }
 
-    my $digest = '';
-    if ($self->config->{digest}) {
-        $digest = substr(Digest::SHA1::sha1_hex(${$line_ref}), 0, $DIGEST_LENGTH);
+    if (!$self->config->{nohr}) {
+        my $digest = '';
+        if ($self->config->{digest}) {
+            $digest = substr(Digest::SHA1::sha1_hex(${$line_ref}), 0, $DIGEST_LENGTH);
+        }
+        $self->_output_head($self->count, $digest);
     }
 
-    $self->_output_head($self->count, $digest);
     $self->_output_raw($line_ref) if $self->config->{raw};
 
     if ($self->config->{ltsv}) {
@@ -121,19 +132,15 @@ sub _output_head {
     my $colon = $digest ? ': ' : '';
 
     if ($self->config->{color}) {
-        my $color_hr     = $self->config->{color_hr}     || 'yellow';
-        my $color_count  = $self->config->{color_count}  || 'black';
-        my $color_colon  = $self->config->{color_colon}  || 'cyan';
-        my $color_digest = $self->config->{color_digest} || 'magenta';
-        print colored('******************** ', $color_hr);
-        print colored($count, $color_count);
-        print colored($colon, $color_colon);
-        print colored($digest, $color_digest);
-        print colored(' ********************', $color_hr);
+        print colored($self->hr.' ', $self->config->{_color}{hr});
+        print colored($count, $self->config->{_color}{count});
+        print colored($colon, $self->config->{_color}{colon});
+        print colored($digest, $self->config->{_color}{digest});
+        print colored(' '.$self->hr, $self->config->{_color}{hr});
         print "\n";
     }
     else {
-        print "******************** $count$colon$digest ********************\n";
+        print $self->hr. " $count$colon$digest ". $self->hr. "\n";
     }
 }
 
@@ -204,12 +211,9 @@ sub __output_line {
     my ($self, $label, $value) = @_;
 
     if ($self->config->{color}) {
-        my $color_label = $self->config->{color_label} || 'blue';
-        my $color_colon = $self->config->{color_colon} || 'cyan';
-        my $color_value = $self->config->{color_value} || 'green';
-        print colored($label, $color_label);
-        print colored(': ', $color_colon) if $label;
-        print colored("$value\n", $color_value);
+        print colored($label, $self->config->{_color}{label});
+        print colored(': ', $self->config->{_color}{colon}) if $label;
+        print colored("$value\n", $self->config->{_color}{value});
     }
     else {
         print "$label: " if $label;
@@ -240,7 +244,24 @@ sub pre {
         croak $@ if $@;
     }
 
+    if ($self->config->{color}) {
+        for my $k (keys %{$DEFAULT_COLOR}) {
+            $self->config->{_color}{$k}
+                = $self->config->{"color-$k"} || $DEFAULT_COLOR->{$k};
+        }
+    }
+
+    $self->hr($self->_hr);
+
     $self;
+}
+
+sub _hr {
+    my $self = shift;
+
+    my $hr     = $self->config->{hr}         || '*';
+    my $hr_num = $self->config->{'hr-count'} || 20;
+    return scalar($hr x $hr_num);
 }
 
 sub _set_config {
@@ -301,6 +322,9 @@ sub _merge_opt {
         'color-hr=s'     => \$config->{color_hr},
         'color-count=s'  => \$config->{color_count},
         'color-digest=s' => \$config->{color_digest},
+        'hr=s'           => \$config->{hr},
+        'hr-count=i'     => \$config->{'hr-count'},
+        'nohr'           => \$config->{'nohr'},
         'h|help'         => sub {
             pod2usage(1);
         },
