@@ -7,7 +7,7 @@ use Pod::Usage;
 use IO::Interactive qw/is_interactive/;
 use Term::ANSIColor qw/colored/;
 
-our $VERSION = '0.062';
+our $VERSION = '0.063';
 
 our $CONFIG_FILE    = '.ygconfig';
 our $DEFAULT_PARSER = 'apache-combined';
@@ -176,10 +176,15 @@ sub _output_parsed_line {
         no strict 'refs'; ## no critic
         $logs = &{ $self->parse_func }(${$line_ref});
     }
-    my $i = 0;
-    for my $label (@{$self->labels}) {
-        $self->__output_line( sprintf($self->label_format, $label), $logs->[$i] );
-        $i++;
+    if (@{$logs}) {
+        my $i = 0;
+        for my $label (@{$self->labels}) {
+            $self->__output_line( sprintf($self->label_format, $label), $logs->[$i] );
+            $i++;
+        }
+    }
+    else {
+        print ${$line_ref};
     }
     print "\n";
 }

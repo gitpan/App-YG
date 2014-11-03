@@ -1,5 +1,8 @@
 Revision history for Perl extension App::YG
 
+0.063   Mon Nov  3 17:55:02 JST 2014
+        - add new parser for vmstat log
+
 0.062   Sat Feb  9 18:35:02 JST 2013
     [NO CODE CHAMGE]
         - version 0.061 is broken
